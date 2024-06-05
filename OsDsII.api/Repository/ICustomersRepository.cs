@@ -11,5 +11,6 @@ namespace OsDsII.api.Repository
         Task DeleteCustomerAsync(int id);
         Task UpdateCustomerAsync(Customer customer);
         Task AddCustomerAsync(Customer customer);
+        void GetAllAsync();
     }
 }

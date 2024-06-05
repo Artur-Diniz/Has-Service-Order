@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using OsDsII.api.Data;
 using OsDsII.api.Models;
 using OsDsII.api.Repository;
+using OsDsII.api.Services.ServiceOrderService;
 
 namespace OsDsII.api.Controllers
 {
@@ -12,10 +13,13 @@ namespace OsDsII.api.Controllers
     {
         private readonly DataContext _dataContext;
         private readonly IServiceOrderRepository _serviceOrderRepository;
-        public ServiceOrdersController( IServiceOrderRepository serviceOrderRepository, DataContext dataContext)
+        private readonly ServiceOrderService _serviceOrder;
+
+        public ServiceOrdersController( IServiceOrderRepository serviceOrderRepository, DataContext dataContext, ServiceOrderService serviceOrder)
         {
             _serviceOrderRepository = serviceOrderRepository;
             _dataContext = dataContext;
+            _serviceOrder = serviceOrder;
         }
 
 
@@ -49,10 +53,9 @@ namespace OsDsII.api.Controllers
             try
             {
                 ServiceOrder serviceOrder = await _serviceOrderRepository.GetByIdAsync(id);
-                    if (serviceOrder is null)
-                {
-                    throw new Exception("Service order not found");
-                }
+               
+                _serviceOrder.GetServiceOrderById(id);
+
                 return Ok(serviceOrder);
             }
             catch (Exception ex)
@@ -70,17 +73,11 @@ namespace OsDsII.api.Controllers
         {
             try
             {
-                if (serviceOrder is null)
-                {
-                    throw new Exception("Service order cannot be null");
-                }
+                
 
                 Customer customer = await _dataContext.Customers.FirstOrDefaultAsync(c => serviceOrder.Customer.Id == c.Id);
 
-                if (customer is null)
-                {
-                    return Conflict("Customer already exists");
-                }
+                _serviceOrder.CreateServiceOrderAsync(serviceOrder, customer);
 
                 await _serviceOrderRepository.AddAsync(serviceOrder);
                 return Created(nameof(customer), customer);
@@ -103,10 +100,8 @@ namespace OsDsII.api.Controllers
             try
             {
                 ServiceOrder serviceOrder = await _serviceOrderRepository.GetByIdAsync(id);
-                if (serviceOrder is null)
-                {
-                    throw new Exception("Service order cannot be null");
-                }
+
+                _serviceOrder.FinishserviceOrderAsync(id);
 
                 serviceOrder.FinishOS();
                 _serviceOrderRepository.FinishAsync(serviceOrder);
@@ -128,11 +123,10 @@ namespace OsDsII.api.Controllers
         {
             try
             {
+
                 ServiceOrder serviceOrder = await _serviceOrderRepository.GetByIdAsync(id);
-                if (serviceOrder is null)
-                {
-                    return NotFound("Customer not found");
-                }
+                
+                _serviceOrder.CancelServiceOrderAsync(id);
 
                 serviceOrder.Cancel();
                _serviceOrderRepository.CancelAsync(serviceOrder);

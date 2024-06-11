@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using OsDsII.api.Http;
 using System.Net;
-using OsDsII.api.Services.Http;
 
-namespace OsDsII.api.Services.Exceptions
+namespace OsDsII.api.Exceptions
 {
     public class BaseException : Exception
     {

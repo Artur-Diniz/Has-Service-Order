@@ -1,4 +1,4 @@
-using OsDsII.api.Dtos;
+using System.ComponentModel.DataAnnotations;
 
 namespace OsDsII.api.Models
 {
@@ -8,11 +8,12 @@ namespace OsDsII.api.Models
 
         public string Name { get; set; } = null!;
 
+        [EmailAddress]
         public string Email { get; set; } = null!;
 
         public string Phone { get; set; }
 
-        public List<ServiceOrder> ServiceOrders { get; set; }
+        public List<ServiceOrder>? ServiceOrders { get; set; } = null;
 
         public Customer()
         { }
@@ -56,11 +57,6 @@ namespace OsDsII.api.Models
         public override int GetHashCode()
         {
             return HashCode.Combine(Id, Name, Email, Phone, ServiceOrders);
-        }
-
-        public static implicit operator Customer(CreateCustomerDto v)
-        {
-            throw new NotImplementedException();
         }
     }
 }

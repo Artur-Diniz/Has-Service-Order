@@ -1,50 +1,29 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using OsDsII.api.Data;
+using OsDsII.api.Dtos.ServiceOrders;
 using OsDsII.api.Models;
-using OsDsII.api.Repository;
-using OsDsII.api.Services.Exceptions;
+using OsDsII.api.Repository.CommentsRepository;
+using OsDsII.api.Repository.ServiceOrderRepository;
 
 namespace OsDsII.api.Services.Comments
 {
-    public class CommentsService
+    public class CommentsService : ICommentsService
     {
-
         private readonly ICommentsRepository _commentsRepository;
+        private readonly IServiceOrderRepository _serviceOrderRepository;
         private readonly IMapper _mapper;
-        private readonly DataContext _context;
 
-        public CommentsService(ICommentsRepository commentsRepository, IMapper mapper, DataContext context)
+        public CommentsService(ICommentsRepository commentsRepository, IMapper mapper, IServiceOrderRepository serviceOrderRepository)
         {
             _commentsRepository = commentsRepository;
+            _serviceOrderRepository = serviceOrderRepository;
             _mapper = mapper;
-            _context = context;
         }
 
-        public async Task AddCommentAsync(int serviceOrderId, Comment comment)
+        public async Task<ServiceOrderDto> GetServiceOrderWithComments(int serviceOrderId)
         {
-            Comment commentExists = HandleCommentObject(serviceOrderId, comment.Description);
-
-            var os = await _context.ServiceOrders.Include(c => c.Customer).FirstOrDefaultAsync(s => serviceOrderId == s.Id);
-
-            if (os == null)
-            {
-                throw new Exception("ServiceOrder not found.");
-            }
+            ServiceOrder serviceOrderWithComments = await _serviceOrderRepository.GetServiceOrderWithComments(serviceOrderId);
+            var serviceOrder = _mapper.Map<ServiceOrderDto>(serviceOrderWithComments);
+            return serviceOrder;
         }
-
-        private Comment HandleCommentObject(int id, string description)
-        {
-            Comment comment = new Comment
-            {
-                Description = description,
-                ServiceOrderId = id
-            };
-            return comment;
-        }
-
-
-
-
     }
 }

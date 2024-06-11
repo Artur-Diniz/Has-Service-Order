@@ -1,13 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using OsDsII.api.Data;
 using OsDsII.api.Models;
 
-namespace OsDsII.api.Repository
+namespace OsDsII.api.Repository.ServiceOrderRepository
 {
-    public class ServiceOrderRepository : IServiceOrderRepository
+    public sealed class ServiceOrderRepository : IServiceOrderRepository
     {
-
+        // DI DATA CONTEXT
         private readonly DataContext _dataContext;
 
         public ServiceOrderRepository(DataContext dataContext)
@@ -25,11 +24,10 @@ namespace OsDsII.api.Repository
             return await _dataContext.ServiceOrders.FirstOrDefaultAsync(s => s.Id == id);
         }
 
-        public async Task<ServiceOrder> AddAsync(ServiceOrder serviceOrder)
+        public async Task AddAsync(ServiceOrder serviceOrder)
         {
-            _dataContext.ServiceOrders.Add(serviceOrder);
+            await _dataContext.ServiceOrders.AddAsync(serviceOrder);
             await _dataContext.SaveChangesAsync();
-            return serviceOrder;
         }
 
         public async Task FinishAsync(ServiceOrder serviceOrder)
@@ -44,7 +42,20 @@ namespace OsDsII.api.Repository
             await _dataContext.SaveChangesAsync();
         }
 
+        public async Task<ServiceOrder> GetServiceOrderWithComments(int serviceOrderId)
+        {
+            return await _dataContext.ServiceOrders
+                .Include(c => c.Customer)
+                .Include(c => c.Comments)
+                .FirstOrDefaultAsync(s => s.Id == serviceOrderId);
+        }
+
+        public async Task<ServiceOrder> GetServiceOrderFromUser(int serviceOrderId)
+        {
+            return await _dataContext.ServiceOrders
+                 .Include(c => c.Customer)
+                 .FirstOrDefaultAsync(s => serviceOrderId == s.Id);
+        }
 
     }
 }
-

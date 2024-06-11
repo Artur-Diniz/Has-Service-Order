@@ -1,13 +1,10 @@
 using AutoMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using OsDsII.api.Data;
-using OsDsII.api.Dtos;
+using OsDsII.api.Dtos.Customers;
+using OsDsII.api.Exceptions;
 using OsDsII.api.Models;
-using OsDsII.api.Repository;
+using OsDsII.api.Repository.CustomersRepository;
 using OsDsII.api.Services.Customers;
-using OsDsII.api.Services.Exceptions;
 
 namespace OsDsII.api.Controllers
 {
@@ -15,53 +12,47 @@ namespace OsDsII.api.Controllers
     [Route("[controller]")]
     public class CustomersController : ControllerBase
     {
-        private readonly DataContext _dataContext;
-        private readonly Mapper _mapper;
+        //private readonly DataContext _dataContext;
         private readonly ICustomersRepository _customersRepository;
+        private readonly IMapper _mapper;
         private readonly ICustomersService _customersService;
 
-        public CustomersController(DataContext dataContext, Mapper mapper, ICustomersRepository customersRepository, ICustomersService customersService)
+        public CustomersController(ICustomersRepository customersRepository, IMapper mapper, ICustomersService customersService)
         {
-            _dataContext = dataContext;
-            _mapper = mapper;
             _customersRepository = customersRepository;
+            _mapper = mapper;
             _customersService = customersService;
         }
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-
         public async Task<IActionResult> GetAllAsync()
         {
             try
             {
-                await _customersService.GetAllAsync();
-
-                return Ok();
+                IEnumerable<CustomerDto> customers = await _customersService.GetAllAsync();
+                return Ok(customers);
             }
-            catch (Exception ex)
+            catch (BaseException ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ex.GetResponse();
             }
+
         }
-
-
-
 
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-
         public async Task<IActionResult> GetByIdAsync(int id)
         {
             try
             {
-                await _customersService.GetCustomerAsync(id);
-                return Ok();
+                CustomerDto customer = await _customersService.GetCustomerAsync(id);
+                return Ok(customer);
             }
-            catch (Exception ex)
+            catch (BaseException ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
@@ -76,7 +67,6 @@ namespace OsDsII.api.Controllers
             try
             {
                 await _customersService.CreateAsync(customer); // assíncrono porém void
-
                 return Created(nameof(CustomersController), customer);
             }
             catch (BaseException ex)
@@ -88,8 +78,7 @@ namespace OsDsII.api.Controllers
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-
-
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteCustomerAsync(int id)
         {
             try
@@ -97,9 +86,9 @@ namespace OsDsII.api.Controllers
                 await _customersService.DeleteAsync(id);
                 return NoContent();
             }
-            catch (Exception ex)
+            catch (BaseException ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ex.GetResponse();
             }
         }
 
@@ -107,24 +96,17 @@ namespace OsDsII.api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-
-
-        public async Task<IActionResult> UpdateCustomerAsync(int id)
+        public async Task<IActionResult> UpdateCustomerAsync([FromBody] CreateCustomerDto customer, int id)
         {
             try
             {
-                await _customersService.UpdateAsync(id);
-                
-                
+                await _customersService.UpdateAsync(id, customer);
                 return NoContent();
             }
-            catch (Exception ex)
+            catch (BaseException ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ex.GetResponse();
             }
         }
-
-     
-
     }
 }

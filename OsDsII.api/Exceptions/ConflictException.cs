@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace OsDsII.api.Services.Exceptions
+namespace OsDsII.api.Exceptions
 {
     public class ConflictException : BaseException
     {

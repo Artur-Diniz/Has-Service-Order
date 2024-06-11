@@ -1,4 +1,4 @@
-﻿namespace OsDsII.api.Services.Http
+﻿namespace OsDsII.api.Http
 {
     public class HttpErrorResponse
     {
